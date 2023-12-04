@@ -77,4 +77,5 @@ export const ButtonBox = Styled.View`
   display: flex;
   flex-direction: row;
   justify-content: space-around;
+  align-items: center;
 `;

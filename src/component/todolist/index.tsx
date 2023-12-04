@@ -1,16 +1,18 @@
-import React, { useState, ChangeEvent } from "react";
-import { View, Text, TextInput, Button } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput } from "react-native";
 import * as S from "./style";
 
 type ItemProps = {
-  item: string;
+  itemText: string;
   onDelete: () => void;
   onUpdate: (updatedItem: string) => void;
 };
 
-const ToDo: React.FC<ItemProps> = ({ item, onDelete, onUpdate }) => {
-  const [editedItem, setEditedItem] = useState<string>(item);
+const ToDo: React.FC<ItemProps> = ({ itemText, onDelete, onUpdate }) => {
+  const [editedItem, setEditedItem] = useState<string>(itemText);
   const [isEditClick, setIsEditClick] = useState<boolean>(false);
+  const [startTime, setStartTime] = useState<Date>(new Date());
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
 
   const openEdit = () => {
     setIsEditClick(true);
@@ -25,6 +27,40 @@ const ToDo: React.FC<ItemProps> = ({ item, onDelete, onUpdate }) => {
     onUpdate(editedItem);
   };
 
+  useEffect(() => {
+    setInterval(() => {
+      const now = new Date();
+      setElapsedTime(now.getTime() - startTime.getTime());
+    }, 1000);
+  }, []);
+
+  const dateSetting = (milliseconds: number): string => {
+    const seconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const weeks = Math.floor(days / 7);
+    const months = Math.floor(days / 30);
+    const years = Math.floor(days / 365);
+
+    switch (true) {
+      case seconds < 60:
+        return "방금 전";
+      case minutes < 60:
+        return `${minutes}분 전`;
+      case hours < 24:
+        return `${hours}시간 전`;
+      case days < 7:
+        return `${days}일 전`;
+      case weeks < 4:
+        return `${weeks}주 전`;
+      case months < 12:
+        return `${months}달 전`;
+      default:
+        return `${years}년 전`;
+    }
+  };
+
   return (
     <S.TodoItemBox>
       {isEditClick ? (
@@ -36,7 +72,7 @@ const ToDo: React.FC<ItemProps> = ({ item, onDelete, onUpdate }) => {
           onBlur={handleEditText}
         />
       ) : (
-        <S.TodoItem>{item}</S.TodoItem>
+        <S.TodoItem>{itemText}</S.TodoItem>
       )}
       <S.ButtonBox>
         <S.DeleteButton onPress={onDelete}>
@@ -45,13 +81,14 @@ const ToDo: React.FC<ItemProps> = ({ item, onDelete, onUpdate }) => {
         <S.EditButton onPress={openEdit}>
           <S.ButtonText>수정하기</S.ButtonText>
         </S.EditButton>
+        <Text>{dateSetting(elapsedTime)}</Text>
       </S.ButtonBox>
     </S.TodoItemBox>
   );
 };
 
 export const ToDoList: React.FC = () => {
-  const [todo, setTodo] = useState<string[]>([]);
+  const [todoList, setTodoList] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState<string>("");
 
   const saveUserInput = (text: string) => {
@@ -59,21 +96,21 @@ export const ToDoList: React.FC = () => {
   };
 
   const handleButtonClick = () => {
-    const updatedTodo = [...todo, inputValue];
-    setTodo(updatedTodo);
+    const updatedTodoList = [...todoList, inputValue];
+    setTodoList(updatedTodoList);
     setInputValue("");
   };
 
   const handleDelete = (index: number) => {
-    const updatedTodo = [...todo];
-    updatedTodo.splice(index, 1);
-    setTodo(updatedTodo);
+    const updatedTodoList = [...todoList];
+    updatedTodoList.splice(index, 1);
+    setTodoList(updatedTodoList);
   };
 
   const handleUpdate = (index: number, updatedItem: string) => {
-    const updatedTodo = [...todo];
-    updatedTodo[index] = updatedItem;
-    setTodo(updatedTodo);
+    const updatedTodoList = [...todoList];
+    updatedTodoList[index] = updatedItem;
+    setTodoList(updatedTodoList);
   };
 
   return (
@@ -91,10 +128,10 @@ export const ToDoList: React.FC = () => {
         </S.MakeToDoButton>
       </S.GenerateBox>
       <View style={{ marginTop: 20, width: "100%" }}>
-        {todo.map((todo, index) => (
+        {todoList.map((todo, index) => (
           <ToDo
             key={index}
-            item={todo}
+            itemText={todo}
             onDelete={() => handleDelete(index)}
             onUpdate={(updatedItem) => handleUpdate(index, updatedItem)}
           />
